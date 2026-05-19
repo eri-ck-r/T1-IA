@@ -289,31 +289,7 @@ Requisitos:
     -   chunking
         
 
-12.3 Vídeo (até 3 minutos)
-
-Deve mostrar:
-
-1.  arquitetura
-    
-2.  sistema funcionando
-    
-
 Não entregar itens obrigatórios = nota zero
-
-# ITENS PROIBIDOS E PERMITIDOS
-
-Proibidos:
-
--   compartilhar código entre grupos
-    
--   usar ferramentas que geram o sistema completo automaticamente
-    
-
-Exemplos:  
-lovable, Bolt.new, v0, Pythagora AI, Replit Ghostwriter, Flowise, Retool AI, Superblocks AI, BuildShip, Glide, Bubble, Appsmith, ToolJet
-
-Permitidos:  
-Claude Code, Copilot, Cursor, Codeium, Amazon CodeWhisperer, Continue.dev, Ollama, OpenDevin, Devin e similares
 
 # CRITERIOS DE AVALIAÇÃO
 
