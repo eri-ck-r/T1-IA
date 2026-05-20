@@ -1,0 +1,49 @@
+# src/rag/retriever.py
+import json
+import pickle
+import faiss
+import numpy as np
+from sentence_transformers import SentenceTransformer
+import regex as re
+
+# Carregar artefatos do disco (executado apenas uma vez ao importar o módulo)
+DB_DIR = "./database"
+
+with open(f"{DB_DIR}/chunks.json", "r", encoding="utf-8") as f:
+    chunks = json.load(f)
+
+with open(f"{DB_DIR}/bm25_index.pkl", "rb") as f:
+    indice_bm25 = pickle.load(f)
+
+with open(f"{DB_DIR}/embeddings_matrix.pkl", "rb") as f:
+    matriz_emb = pickle.load(f)
+
+indice_faiss = faiss.read_index(f"{DB_DIR}/faiss_index.bin")
+modelo_embed = SentenceTransformer("sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2")
+
+def tokenizar(texto):
+    return re.findall(r"\w+", texto.lower())
+
+def normalizar(v):
+    v = np.array(v, dtype="float32")
+    delta = float(v.max() - v.min())
+    if delta < 1e-9: return np.zeros_like(v)
+    return (v - v.min()) / delta
+
+def recuperar_hibrido(pergunta: str, k: int = 3, alpha: float = 0.6) -> str:
+    """Combina BM25 e Semântico, retornando uma string formatada para o LLM."""
+    sb = normalizar(indice_bm25.get_scores(tokenizar(pergunta)))
+    q = modelo_embed.encode([pergunta], normalize_embeddings=True).astype("float32")
+    sd = normalizar(np.dot(matriz_emb, q[0]))
+    
+    score_final = alpha * sd + (1.0 - alpha) * sb
+    idx = np.argsort(score_final)[::-1][:k]
+    
+    docs_recuperados = [chunks[i] for i in idx]
+    
+    # Formatação do contexto com indexação baseada em 0
+    contexto = "\n\n".join(
+        [f"Trecho {i}:\n{d['texto']}" for i, d in enumerate(docs_recuperados)]
+    )
+    
+    return contexto
