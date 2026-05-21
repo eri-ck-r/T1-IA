@@ -1,15 +1,38 @@
 # JARVIS - Academic Personal Assistant: System Prompt & Requirements
 
-## 1. Project Overview
-You are assisting Erick Rodrigues, a Computer Science student at the Federal University of Mato Grosso do Sul (UFMS), in developing **JARVIS**, an AI-powered academic personal assistant. The system aims to organize academic life and enhance learning through Retrieval-Augmented Generation (RAG), Tool Calling, and Active Recall.
+## 0. Project Overview
+You are assisting Erick and Mayara, Computer Science students at the Federal University of Mato Grosso do Sul (UFMS), in developing **JARVIS**, an AI-powered academic personal assistant. The system aims to organize academic life and enhance learning through Retrieval-Augmented Generation (RAG), Tool Calling, and Active Recall.
 
-## 2. Core Tech Stack & Constraints
+## 1. Core Tech Stack & Constraints
 * **Language**: Python
 * **LLM**: Gemma 3 12B IT (accessed via OpenAI API SDK with a custom `base_url`).
 * **Data Storage**: SQLite(for agenda and tasks), `/data` directory for documents.
 * **Code Conventions**: Strict separation of concerns, comprehensive logging, basic testing, and robust error handling.
-* **Indexing Preference**: **Strictly use 0-based indexing** for all arrays, document chunking sequences, and loop counters. 
+* **Indexing Preference**: **Strictly use 0-based indexing** for all arrays, document chunking sequences, and loop counters.
+  
+## 2. Coding Conventions & Style Guide
 
+The codebase for JARVIS strictly adheres to the following programming paradigms and stylistic choices to ensure maintainability, readability, and robust execution within an autonomous LLM loop.
+
+### A. Core Logic & Indexing
+* **Strict 0-Based Indexing:** All computational logic, loop counters, and array accesses fundamentally operate on a 0-based index. This applies universally across the architecture:
+    * **RAG Chunking:** Document chunks are sequentially generated starting at `chunk_0000`.
+    * **Database Fetching:** Arrays returned from SQLite queries (e.g., `fetchall()`) are accessed via `row[i]` where the initial iteration is explicitly index `0`.
+    * **Prompt Engineering:** Tool options and system instructions provided to the LLM are numbered starting from `0`.
+
+### B. Modularity & Separation of Concerns
+* **Stateless Tooling:** Functions intended for the LLM agent to call (within `src/tools/`) must remain entirely stateless. They take explicit arguments, execute a single task, and return a string. They do not hold global variables or active memory.
+* **Decoupled Infrastructure:** Heavy data processing (like vector embeddings or database creation) is completely isolated from the runtime agent. Code that builds the environment (`setup_db.py`, `ingest.py`) never interacts with code that queries the environment (`main.py`).
+
+### C. Logging & Execution Flow
+* **Interceptor Pattern:** Tool logging is never hardcoded inside the tool's business logic. Instead, Python decorators (`@log_tool_call`) are utilized to intercept and handle operational metadata (Tool Name, Inputs, Output) gracefully in the background.
+* **Recursive Error Handling:** The main agent loop utilizes `try/except` blocks not just to prevent crashes, but to feed error states back to the LLM. If a JSON parse fails or a tool crashes, the error message is appended to the message history so the autonomous agent can attempt to self-correct.
+
+### D. Readability & Pythonic Standards
+* **Type Hinting:** Function signatures employ standard Python type hinting for inputs and return types (e.g., `def buscar_material_rag(query: str) -> str:`) to explicitly define the expected data contracts.
+* **Descriptive Naming:** Variables and functions use explicit, descriptive naming conventions (e.g., `iniciar_quiz_active_recall` instead of `quiz()`). 
+* **Bilingual Documentation:** While the core Python syntax and variables lean towards standard English/agnostic naming, the docstrings, terminal print statements, and LLM system prompts strictly use Portuguese to maintain alignment with the project's target language.
+  
 ## 3. Mandatory Modules to Implement
 
 ### A. RAG System (Retrieval-Augmented Generation)
@@ -75,12 +98,14 @@ jarvis/
     1. `buscar_material_rag(query)`: Executes the hybrid RAG search.
     2. `listar_tarefas()`: Queries SQLite and returns formatted active tasks.
     3. `adicionar_tarefa(descricao)`: Inserts new task rows into the database.
+       
+### E. Interactive Learning (`src/learning/`)
+* **Active Recall Prototype (`active_recall.py`):** Built the standalone logic for Mandatory Feature 1. It loads RAG chunks, selects a text block using a random 0-based index, prompts the LLM to generate a contextual question, waits for terminal input, and evaluates the user's answer against the ground truth.
 ---
 
 ## 7. Remaining Roadmap (To-Do)
 * **Remaining Tools (2/5):** * `consultar_agenda()`
     * `concluir_tarefa(task_id)`
-* **Learning Feature 1:** Interactive Learning (`src/learning/`) Build an Active Recall Prototype (`active_recall.py`):** Build the standalone logic for Mandatory Feature 1. It loads RAG chunks, selects a text block using a random 0-based index, prompts the LLM to generate a contextual question, waits for terminal input, and evaluates the user's answer against the ground truth.
-* **Learning Feature 2:** Implement the secondary educational feature (e.g., generating review recommendations based on task difficulty).
+* **Learning Feature 1:** Implement the secondary educational feature (e.g., generating review recommendations based on task difficulty).
 * **Evaluation Pipeline (`tests/evaluate_rag.py`):** Build the script to test 10 predefined academic questions against the RAG system and log the `correct / partially correct / incorrect` mapping.
 * **Error Analysis Framework:** Document the 3 required system failures (utilizing organic examples encountered, such as the vLLM server block and single-turn execution failure).
