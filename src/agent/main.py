@@ -4,12 +4,14 @@ import os
 import sys
 import re
 from openai import OpenAI
+from dotenv import load_dotenv
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 from tools.rag_tool import buscar_material_rag
 from tools.tasks_tool import adicionar_tarefa, listar_tarefas
 from tools.learning_tool import iniciar_quiz
+
 
 available_functions = {
     "buscar_material_rag": buscar_material_rag,
@@ -18,7 +20,12 @@ available_functions = {
     "iniciar_quiz": iniciar_quiz
 }
 
-client = OpenAI(base_url='https://llm.liaufms.org/v1/gemma-3-12b-it', api_key='Cxt2ftLF7d3mHS2JdiFqB-eSDAQeZvFATPXPs02lV9A')
+
+load_dotenv()
+LIA_BASE_URL = os.getenv("LIA_BASE_URL")
+JARVIS_API_KEY = os.getenv("JARVIS_API_KEY")
+
+client = OpenAI(base_url=LIA_BASE_URL, api_key=JARVIS_API_KEY)
 
 def run_agent():
     print("Iniciando JARVIS... (Modo Prompt-Based)")

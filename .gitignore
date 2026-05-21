@@ -1,2 +1,9 @@
+# jarvis/.gitignore
 .venv
-__pycache__
+.env
+
+database/*.db
+database/*.pkl
+database/*.bin
+
+logs/*.log
