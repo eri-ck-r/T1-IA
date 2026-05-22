@@ -46,3 +46,30 @@ def adicionar_tarefa(descricao: str) -> str:
     conn.close()
     
     return f"Tarefa adicionada com sucesso: '{descricao}'."
+
+
+# Adicione esta função ao final do seu src/tools/tasks_tool.py
+
+@log_tool_call
+def concluir_tarefa(id_tarefa: int) -> str:
+    """Modifica o status de uma tarefa para 'concluída' com base no seu ID numérico."""
+    conn = get_connection()
+    cursor = conn.cursor()
+
+    # Verificação de segurança para ver se a tarefa existe
+    cursor.execute("SELECT id FROM tarefas WHERE id = ?", (id_tarefa,))
+    row = cursor.fetchone()
+
+    if not row:
+        conn.close()
+        return f"Erro: Nenhuma tarefa encontrada com o ID {id_tarefa}."
+
+    # Executa a atualização do estado
+    cursor.execute(
+        "UPDATE tarefas SET status = 'concluída' WHERE id = ?",
+        (id_tarefa,)
+    )
+    conn.commit()
+    conn.close()
+
+    return f"Tarefa com ID {id_tarefa} foi marcada como concluída com sucesso."
