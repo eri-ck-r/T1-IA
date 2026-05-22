@@ -19,7 +19,7 @@ from datetime import datetime
 dia_hoje = datetime.today().strftime('%Y-%m-%d')
 dia_da_semana = datetime.today().strftime('%A');
 
-#TODO: adicionar agenda e consultar_agenda
+#TODO: adicionar adicionar_evento_agenda e consultar_agenda
 available_functions = {
     "buscar_material_rag": buscar_material_rag,
     "listar_tarefas": listar_tarefas,
