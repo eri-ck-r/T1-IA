@@ -1,12 +1,13 @@
 # src/tools/learning_tool.py
 import json
 import random
-import os
 from utils.interceptor import log_tool_call
+from pathlib import Path
 
-# Garantir que o caminho funcione independente de onde o script é chamado
-BASE_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-DB_PATH = os.path.join(BASE_DIR, "database", "chunks.json")
+
+BASE_DIR = Path(__file__).resolve().parents[2]
+DB_PATH = BASE_DIR / "database" / "chunks.json"
+
 
 
 @log_tool_call

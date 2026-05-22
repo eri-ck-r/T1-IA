@@ -1,12 +1,13 @@
 # src/tools/tasks_tool.py
 import sqlite3
 from utils.interceptor import log_tool_call
+from pathlib import Path
 
-DB_PATH = "database/jarvis.db"
+DB_PATH = Path(__file__).resolve().parents[2] / "database" / "jarvis.db"
 
 def get_connection():
     # Helper to keep connections clean
-    return sqlite3.connect(DB_PATH)
+    return sqlite3.connect(str(DB_PATH))
 
 @log_tool_call
 def listar_tarefas() -> str:

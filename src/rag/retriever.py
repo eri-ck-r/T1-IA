@@ -5,20 +5,21 @@ import faiss
 import numpy as np
 from sentence_transformers import SentenceTransformer
 import regex as re
+from pathlib import Path
 
-DB_DIR = "./database"
+DB_DIR = Path(__file__).resolve().parents[2] / "database"
 
 # Esses arquivos agora contêm a base de conhecimento global (todos os PDFs)
-with open(f"{DB_DIR}/chunks.json", "r", encoding="utf-8") as f:
+with open(DB_DIR / "chunks.json", "r", encoding="utf-8") as f:
     chunks = json.load(f)
 
-with open(f"{DB_DIR}/bm25_index.pkl", "rb") as f:
+with open(DB_DIR / "bm25_index.pkl", "rb") as f:
     indice_bm25 = pickle.load(f)
 
-with open(f"{DB_DIR}/embeddings_matrix.pkl", "rb") as f:
+with open(DB_DIR / "embeddings_matrix.pkl", "rb") as f:
     matriz_emb = pickle.load(f)
 
-indice_faiss = faiss.read_index(f"{DB_DIR}/faiss_index.bin")
+indice_faiss = faiss.read_index(str(DB_DIR / "faiss_index.bin"))
 modelo_embed = SentenceTransformer("sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2")
 
 
