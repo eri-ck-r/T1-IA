@@ -29,6 +29,7 @@ def init_db():
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         titulo TEXT NOT NULL,
         data_hora DATETIME NOT NULL,
+        tipo TEXT NOT NULL,
         descricao TEXT
     )
     ''')
