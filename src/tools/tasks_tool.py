@@ -48,29 +48,62 @@ def adicionar_tarefa(descricao: str) -> str:
     
     return f"Tarefa adicionada com sucesso: '{descricao}'."
 
-
-# Adicione esta função ao final do seu src/tools/tasks_tool.py
+# Adicione isso ao final do arquivo src/tools/tasks_tool.py
 
 @log_tool_call
-def concluir_tarefa(id_tarefa: int) -> str:
-    """Modifica o status de uma tarefa para 'concluída' com base no seu ID numérico."""
+def remover_tarefa(task_id: int) -> str:
+    """Remove uma tarefa do banco de dados com base no seu ID."""
     conn = get_connection()
     cursor = conn.cursor()
 
-    # Verificação de segurança para ver se a tarefa existe
-    cursor.execute("SELECT id FROM tarefas WHERE id = ?", (id_tarefa,))
-    row = cursor.fetchone()
+    cursor.execute("DELETE FROM tarefas WHERE id = ?", (task_id,))
+    linhas_afetadas = cursor.rowcount
 
-    if not row:
-        conn.close()
-        return f"Erro: Nenhuma tarefa encontrada com o ID {id_tarefa}."
-
-    # Executa a atualização do estado
-    cursor.execute(
-        "UPDATE tarefas SET status = 'concluída' WHERE id = ?",
-        (id_tarefa,)
-    )
     conn.commit()
     conn.close()
 
-    return f"Tarefa com ID {id_tarefa} foi marcada como concluída com sucesso."
+    if linhas_afetadas == 0:
+        return f"Erro: Nenhuma tarefa encontrada com o ID {task_id}."
+
+    return f"Tarefa {task_id} removida com sucesso."
+
+
+@log_tool_call
+def editar_tarefa(task_id: int, nova_descricao: str = None, novo_status: str = None) -> str:
+    """
+    Edita a descrição e/ou o status de uma tarefa existente.
+    Pode ser usado para marcar uma tarefa como 'concluída'.
+    """
+    if not nova_descricao and not novo_status:
+        return "Erro: Nenhuma alteração fornecida. Informe uma nova descrição ou status."
+
+    conn = get_connection()
+    cursor = conn.cursor()
+
+    # Constrói a query SQL dinamicamente com base no que foi fornecido
+    campos = []
+    valores = []
+
+    if nova_descricao:
+        campos.append("descricao = ?")
+        valores.append(nova_descricao)
+
+    if novo_status:
+        campos.append("status = ?")
+        valores.append(novo_status)
+
+    # Adiciona o ID ao final dos valores para a cláusula WHERE
+    valores.append(task_id)
+
+    query = f"UPDATE tarefas SET {', '.join(campos)} WHERE id = ?"
+
+    cursor.execute(query, tuple(valores))
+    linhas_afetadas = cursor.rowcount
+
+    conn.commit()
+    conn.close()
+
+    if linhas_afetadas == 0:
+        return f"Erro: Nenhuma tarefa encontrada com o ID {task_id}."
+
+    return f"Tarefa {task_id} atualizada com sucesso."

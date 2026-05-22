@@ -8,20 +8,27 @@ from dotenv import load_dotenv
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 from tools.rag_tool import buscar_material_rag
-from tools.tasks_tool import adicionar_tarefa, listar_tarefas, concluir_tarefa  # Atualizado
+from tools.tasks_tool import adicionar_tarefa, listar_tarefas, remover_tarefa, editar_tarefa # Atualizado
 from tools.learning_tool import iniciar_quiz
 from tools.rag_tool import buscar_material_rag
 from tools.tasks_tool import adicionar_tarefa, listar_tarefas
 from tools.learning_tool import iniciar_quiz
+from tools.agenda_tool import adicionar_evento_agenda, consultar_agenda
 
-#TODO: editar_tarefa, remover_tarefa
-#TODO: remover consultar_agenda
+from datetime import datetime
+dia_hoje = datetime.today().strftime('%Y-%m-%d')
+dia_da_semana = datetime.today().strftime('%A');
+
+#TODO: adicionar agenda e consultar_agenda
 available_functions = {
     "buscar_material_rag": buscar_material_rag,
     "listar_tarefas": listar_tarefas,
     "adicionar_tarefa": adicionar_tarefa,
     "iniciar_quiz": iniciar_quiz,
-    "concluir_tarefa": concluir_tarefa,   # Adicionado
+    "remover_tarefa": remover_tarefa,
+    "editar_tarefa": editar_tarefa,
+    "adicionar_evento_agenda": adicionar_evento_agenda,
+    "consultar_agenda": consultar_agenda
 }
 
 
@@ -41,12 +48,18 @@ def run_agent():
     1: {"tool_call": "listar_tarefas", "args": {}}
     2: {"tool_call": "adicionar_tarefa", "args": {"descricao": "texto da tarefa"}}
     3: {"tool_call": "iniciar_quiz", "args": {}}
-    4: {"tool_call": "concluir_tarefa", "args": {"id_tarefa": id_numerico}}
+    4: {"tool_call": "remover_tarefa", "args": {"task_id": numero_do_id}}
+    5: {"tool_call": "editar_tarefa", "args": {"task_id": numero_do_id, "nova_descricao": "novo texto opcional", "novo_status": "concluida ou pendente opcional"}}
+    6: {"tool_call": "adicionar_evento_agenda", "args": {"titulo": "nome", "data_hora": "YYYY-MM-DD HH:MM", "tipo": "aula ou prova", "descricao": "texto"}}
+    7: {"tool_call": "consultar_agenda", "args": {"dias": numero_de_dias}}
+    
+    Se o usuário pedir para ser testado, revisar a matéria ou fazer uma pergunta de estudo, use a ferramenta iniciar_quiz.
+    Se o usuário pedir para adicionar uma nova tarefa, use a ferramenta adicionar_tarefa.
+    Se o usuário pedir para editar a descrição ou status de uma tarefa, use a ferramenta editar_tarefa.
+    Se o usuário pedir para remover uma tarefa, use a ferramenta remover_tarefa.
+    Se você precisar usar uma ferramenta para responder ao usuário, você DEVE responder APENAS com o formato JSON da ferramenta escolhida e nenhum outro texto. Se não precisar de ferramentas, responda normalmente em português."""
 
-    Regras de ativação:
-    - Se o usuário indicar que terminou, concluiu ou finalizou uma tarefa específica, use concluir_tarefa passando o ID numérico correspondente.
-    - Se você precisar usar uma ferramenta para responder ao usuário, você DEVE responder APENAS com o formato JSON da ferramenta escolhida e nenhum outro texto. Se não precisar de ferramentas, responda normalmente em português."""
-
+    system_instruction += f" Além disso, o dia de hoje é {dia_hoje}, {dia_da_semana}"
     messages = [{"role": "system", "content": system_instruction}]
 
     while True:
