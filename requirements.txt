@@ -4,8 +4,10 @@ sentence-transformers
 faiss-cpu
 transformers
 accelerate
-python-telegram-bot==20.7
 nest_asyncio
 openai
 pytest
 python-dotenv
+numpy
+fastapi
+uvicorn
