@@ -14,7 +14,8 @@ from tools.rag_tool import buscar_material_rag
 from tools.tasks_tool import adicionar_tarefa, listar_tarefas
 from tools.learning_tool import iniciar_quiz
 
-
+#TODO: editar_tarefa, remover_tarefa
+#TODO: remover consultar_agenda
 available_functions = {
     "buscar_material_rag": buscar_material_rag,
     "listar_tarefas": listar_tarefas,
