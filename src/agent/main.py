@@ -5,6 +5,7 @@ import sys
 import re
 from openai import OpenAI
 from dotenv import load_dotenv
+from datetime import datetime
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 from tools.rag_tool import buscar_material_rag
@@ -15,9 +16,12 @@ from tools.tasks_tool import adicionar_tarefa, listar_tarefas
 from tools.learning_tool import iniciar_quiz
 from tools.agenda_tool import adicionar_evento_agenda, consultar_agenda
 
-from datetime import datetime
-dia_hoje = datetime.today().strftime('%Y-%m-%d')
-dia_da_semana = datetime.today().strftime('%A');
+
+load_dotenv()
+LIA_BASE_URL = os.getenv("LIA_BASE_URL")
+JARVIS_API_KEY = os.getenv("JARVIS_API_KEY")
+
+client = OpenAI(base_url=LIA_BASE_URL, api_key=JARVIS_API_KEY)
 
 #TODO: adicionar adicionar_evento_agenda e consultar_agenda
 available_functions = {
@@ -31,14 +35,9 @@ available_functions = {
     "consultar_agenda": consultar_agenda
 }
 
-
-load_dotenv()
-LIA_BASE_URL = os.getenv("LIA_BASE_URL")
-JARVIS_API_KEY = os.getenv("JARVIS_API_KEY")
-
-client = OpenAI(base_url=LIA_BASE_URL, api_key=JARVIS_API_KEY)
-
 def run_agent():
+    dia_hoje = datetime.today().strftime('%Y-%m-%d')
+    dia_da_semana = datetime.today().strftime('%A')
     print("Iniciando JARVIS... (Modo Prompt-Based)")
 
     # We embed the tool definitions directly into the system prompt
