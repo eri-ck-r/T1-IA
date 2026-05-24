@@ -1,6 +1,6 @@
 # api.py — JARVIS FastAPI Backend
-# Place this file at the root of the jarvis/ project directory.
-# Run with: uvicorn api:app --reload
+
+# Para rodar: uvicorn api:app --reload
 
 import json
 import os
@@ -17,9 +17,7 @@ from openai import OpenAI
 from dotenv import load_dotenv
 from datetime import datetime
 
-# ---------------------------------------------------------------------------
-# Path setup — makes src/ importable from the project root
-# ---------------------------------------------------------------------------
+
 BASE_DIR = Path(__file__).resolve().parent
 sys.path.append(str(BASE_DIR / "src"))
 
@@ -28,18 +26,14 @@ from tools.tasks_tool import adicionar_tarefa, listar_tarefas, remover_tarefa, e
 from tools.learning_tool import iniciar_quiz
 from tools.agenda_tool import adicionar_evento_agenda, consultar_agenda
 
-# ---------------------------------------------------------------------------
-# LLM client
-# ---------------------------------------------------------------------------
+
 load_dotenv()
 LIA_URL = os.getenv("LIA_URL")
 GEMMA_API_KEY = os.getenv("GEMMA_API_KEY")
 
 client = OpenAI(base_url=LIA_URL, api_key=GEMMA_API_KEY)
 
-# ---------------------------------------------------------------------------
-# Tool registry
-# ---------------------------------------------------------------------------
+# Registro  de ferramentas
 available_functions = {
     "buscar_material_rag": buscar_material_rag,
     "listar_tarefas": listar_tarefas,
@@ -66,12 +60,14 @@ SYSTEM_PROMPT = """Você é o JARVIS, um assistente acadêmico.
     Se o usuário pedir para adicionar uma nova tarefa, use a ferramenta adicionar_tarefa.
     Se o usuário pedir para editar a descrição ou status de uma tarefa, use a ferramenta editar_tarefa.
     Se o usuário pedir para remover uma tarefa, use a ferramenta remover_tarefa.
-    Se você precisar usar uma ferramenta para responder ao usuário, você DEVE responder APENAS com o formato JSON da ferramenta escolhida e nenhum outro texto. Se não precisar de ferramentas, responda normalmente em português."""
+    Se você precisar usar uma ferramenta para responder ao usuário, você DEVE responder APENAS com o formato JSON da ferramenta escolhida e nenhum outro texto.
+    Se não precisar de ferramentas, responda normalmente em português."""
 
 hoje = datetime.today().strftime('%Y-%m-%d')
 dia_da_semana = datetime.today().strftime('%A')
 SYSTEM_PROMPT += f" Além disso, o dia de hoje é {hoje}, {dia_da_semana}"
 
+# Parte da interface web que o Claude fez
 # ---------------------------------------------------------------------------
 # FastAPI app
 # ---------------------------------------------------------------------------
@@ -79,7 +75,7 @@ app = FastAPI(title="JARVIS API")
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # Fine for local use
+    allow_origins=["*"], 
     allow_methods=["*"],
     allow_headers=["*"],
 )
@@ -106,21 +102,20 @@ class ChatResponse(BaseModel):
     tool_calls_made: List[str] = []  # Names of tools that were called, for the UI
 
 
-# ---------------------------------------------------------------------------
-# Core agent logic (extracted from main.py)
-# ---------------------------------------------------------------------------
+#Lógica do agente, extraída do src/agent/main.py (caso queira rodar no terminal, executa aquele ao invés desse)
 def rodar_agente(user_message: str, history: List[Message]) -> dict:
     """
     Processa uma rodada do usuário através do loop do agente JARVIS.
     Retorna a resposta final em texto e uma lista de nomes de ferramentas chamadas.
     """
+
     # Construir a lista de mensagens: sistema + histórico + nova mensagem do usuário
     messages = [{"role": "system", "content": SYSTEM_PROMPT}]
     for msg in history:
         messages.append({"role": msg.role, "content": msg.content})
     messages.append({"role": "user", "content": user_message})
 
-    ferramentas_usadas = []
+    ferramentas_chamadas = []
     MAX_TOOL_ITERATIONS = 5  # Limite de segurança para evitar loops infinitos
 
     for _ in range(MAX_TOOL_ITERATIONS):
@@ -142,7 +137,7 @@ def rodar_agente(user_message: str, history: List[Message]) -> dict:
                 func_to_call = available_functions.get(func_name)
                 if func_to_call:
                     tool_output = func_to_call(**args)
-                    ferramentas_usadas.append(func_name)
+                    ferramentas_chamadas.append(func_name)
                 else:
                     tool_output = f"Erro: ferramenta '{func_name}' não encontrada."
 
@@ -162,12 +157,12 @@ def rodar_agente(user_message: str, history: List[Message]) -> dict:
 
         else:
             # Sem nenhum tool call
-            return {"response": response_text, "tool_calls_made": ferramentas_usadas}
+            return {"response": response_text, "tool_calls_made": ferramentas_chamadas}
 
-    # Fallback if we hit the iteration cap
+    # Caso tenha atingido o limite de iterações
     return {
         "response": "Desculpe, não consegui processar sua solicitação. Tente novamente.",
-        "tool_calls_made": ferramentas_usadas,
+        "tool_calls_made": ferramentas_chamadas,
     }
 
 
