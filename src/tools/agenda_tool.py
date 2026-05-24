@@ -27,9 +27,8 @@ def adicionar_evento_agenda(titulo: str, data_hora: str, tipo: str, descricao: s
 
     eventos_inseridos = 0
 
-    # 2. Lógica de repetição baseada no tipo
     if tipo.lower() == 'aula':
-        # Indexação baseada em 0: i=0 é a aula atual, até i=17 (próximas 17 semanas) -> o tanto que dura um semestre
+        # i=0 é a aula atual, até i=17 (próximas 17 semanas) -> o tanto que dura um semestre
         for i in range(18):
             dt_atual = dt_inicial + timedelta(weeks=i)
             dt_str = dt_atual.strftime("%Y-%m-%d %H:%M")
@@ -43,7 +42,7 @@ def adicionar_evento_agenda(titulo: str, data_hora: str, tipo: str, descricao: s
         mensagem_retorno = f"Sucesso: {eventos_inseridos} aulas de '{titulo}' cadastradas semanalmente a partir de {data_hora}."
 
     else:
-        # Se for prova, registra uma vez só, pois é um evento único
+        # Se for prova, registra uma vez só
         cursor.execute(
             "INSERT INTO agenda (titulo, data_hora, tipo, descricao) VALUES (?, ?, ?, ?)",
             (titulo, data_hora, tipo, descricao)

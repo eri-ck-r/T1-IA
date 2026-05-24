@@ -46,7 +46,7 @@ def ingest_all_documents(data_dir: str = "./data", output_dir: str = "./database
             all_chunks.append({
                 "id": f"chunk_{global_chunk_index:04d}",
                 "texto": chunks_filtrados[j],
-                "fonte": pdf_path.name  # Metadado crucial para o RAG saber a origem
+                "fonte": pdf_path.name  # Metadado do arquvio pro RAG
             })
             global_chunk_index += 1
 

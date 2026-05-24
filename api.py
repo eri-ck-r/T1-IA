@@ -68,9 +68,9 @@ SYSTEM_PROMPT = """Você é o JARVIS, um assistente acadêmico.
     Se o usuário pedir para remover uma tarefa, use a ferramenta remover_tarefa.
     Se você precisar usar uma ferramenta para responder ao usuário, você DEVE responder APENAS com o formato JSON da ferramenta escolhida e nenhum outro texto. Se não precisar de ferramentas, responda normalmente em português."""
 
-today = datetime.today().strftime('%Y-%m-%d')
-weekday = datetime.today().strftime('%A')
-SYSTEM_PROMPT += f" Além disso, o dia de hoje é {today}, {weekday}"
+hoje = datetime.today().strftime('%Y-%m-%d')
+dia_da_semana = datetime.today().strftime('%A')
+SYSTEM_PROMPT += f" Além disso, o dia de hoje é {hoje}, {dia_da_semana}"
 
 # ---------------------------------------------------------------------------
 # FastAPI app
@@ -109,19 +109,19 @@ class ChatResponse(BaseModel):
 # ---------------------------------------------------------------------------
 # Core agent logic (extracted from main.py)
 # ---------------------------------------------------------------------------
-def run_agent_turn(user_message: str, history: List[Message]) -> dict:
+def rodar_agente(user_message: str, history: List[Message]) -> dict:
     """
-    Processes one user turn through the JARVIS agent loop.
-    Returns the final text response and a list of tool names that were called.
+    Processa uma rodada do usuário através do loop do agente JARVIS.
+    Retorna a resposta final em texto e uma lista de nomes de ferramentas chamadas.
     """
-    # Build the message list: system + history + new user message
+    # Construir a lista de mensagens: sistema + histórico + nova mensagem do usuário
     messages = [{"role": "system", "content": SYSTEM_PROMPT}]
     for msg in history:
         messages.append({"role": msg.role, "content": msg.content})
     messages.append({"role": "user", "content": user_message})
 
-    tools_used = []
-    MAX_TOOL_ITERATIONS = 5  # Safety cap to prevent infinite loops
+    ferramentas_usadas = []
+    MAX_TOOL_ITERATIONS = 5  # Limite de segurança para evitar loops infinitos
 
     for _ in range(MAX_TOOL_ITERATIONS):
         response = client.chat.completions.create(
@@ -130,8 +130,8 @@ def run_agent_turn(user_message: str, history: List[Message]) -> dict:
         )
         response_text = response.choices[0].message.content.strip()
 
-        # Check if the model wants to call a tool
-        json_match = re.search(r'\{.*"tool_call".*\}', response_text, re.DOTALL)
+        # Verificar se o modelo deseja chamar uma ferramenta
+        json_match = re.search(r'\{.*"tool_call".*}', response_text, re.DOTALL)
 
         if json_match:
             try:
@@ -142,14 +142,14 @@ def run_agent_turn(user_message: str, history: List[Message]) -> dict:
                 func_to_call = available_functions.get(func_name)
                 if func_to_call:
                     tool_output = func_to_call(**args)
-                    tools_used.append(func_name)
+                    ferramentas_usadas.append(func_name)
                 else:
                     tool_output = f"Erro: ferramenta '{func_name}' não encontrada."
 
             except json.JSONDecodeError:
                 tool_output = "Erro: formato JSON inválido na chamada de ferramenta."
 
-            # Feed the tool result back into the conversation
+            # Alimentar o resultado do tool calling na conversa
             messages.append({"role": "assistant", "content": response_text})
             messages.append({
                 "role": "user",
@@ -161,13 +161,13 @@ def run_agent_turn(user_message: str, history: List[Message]) -> dict:
             })
 
         else:
-            # No tool call — this is the final natural language response
-            return {"response": response_text, "tool_calls_made": tools_used}
+            # Sem nenhum tool call
+            return {"response": response_text, "tool_calls_made": ferramentas_usadas}
 
     # Fallback if we hit the iteration cap
     return {
         "response": "Desculpe, não consegui processar sua solicitação. Tente novamente.",
-        "tool_calls_made": tools_used,
+        "tool_calls_made": ferramentas_usadas,
     }
 
 
@@ -181,7 +181,7 @@ def root():
 
 @app.post("/chat", response_model=ChatResponse)
 def chat(request: ChatRequest):
-    result = run_agent_turn(request.message, request.history)
+    result = rodar_agente(request.message, request.history)
     return ChatResponse(
         response=result["response"],
         tool_calls_made=result["tool_calls_made"],

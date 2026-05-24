@@ -19,8 +19,8 @@ logging.basicConfig(
 
 def log_tool_call(func):
     """
-    A decorator that intercepts a tool execution to log its metadata.
-    Matches the strict requirement: Tool Name, Input Parameters, and Output.
+    Um decorador que intercepta a execução de uma ferramenta para registrar seus metadados.
+    Corresponde ao requisito estrito: Nome da Ferramenta, Parâmetros de Entrada e Saída.
     """
     @functools.wraps(func)
     def wrapper(*args, **kwargs):

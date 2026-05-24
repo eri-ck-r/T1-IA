@@ -13,7 +13,7 @@ def init_db():
     conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
 
-    # Create the Tasks (Tarefas) table
+    # Criar a tabela de tarefas
     cursor.execute('''
     CREATE TABLE IF NOT EXISTS tarefas (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -23,7 +23,7 @@ def init_db():
     )
     ''')
 
-    # Create the Schedule (Agenda) table since it's also a required tool
+    # Criar a tabela da agenda
     cursor.execute('''
     CREATE TABLE IF NOT EXISTS agenda (
         id INTEGER PRIMARY KEY AUTOINCREMENT,

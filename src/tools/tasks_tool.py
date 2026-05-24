@@ -17,8 +17,7 @@ def listar_tarefas() -> str:
     cursor.execute("SELECT id, descricao, status FROM tarefas")
     rows = cursor.fetchall()
     conn.close()
-    
-    # Verificação de array com base 0 para garantir que temos dados
+
     if len(rows) == 0:
         return "Nenhuma tarefa registrada no momento."
         
