@@ -29,7 +29,7 @@ def adicionar_evento_agenda(titulo: str, data_hora: str, tipo: str, descricao: s
 
     # 2. Lógica de repetição baseada no tipo
     if tipo.lower() == 'aula':
-        # Indexação baseada em 0: i=0 é a aula atual, até i=17 (próximas 17 semanas)
+        # Indexação baseada em 0: i=0 é a aula atual, até i=17 (próximas 17 semanas) -> o tanto que dura um semestre
         for i in range(18):
             dt_atual = dt_inicial + timedelta(weeks=i)
             dt_str = dt_atual.strftime("%Y-%m-%d %H:%M")
@@ -43,7 +43,7 @@ def adicionar_evento_agenda(titulo: str, data_hora: str, tipo: str, descricao: s
         mensagem_retorno = f"Sucesso: {eventos_inseridos} aulas de '{titulo}' cadastradas semanalmente a partir de {data_hora}."
 
     else:
-        # Se for prova, evento único
+        # Se for prova, registra uma vez só, pois é um evento único
         cursor.execute(
             "INSERT INTO agenda (titulo, data_hora, tipo, descricao) VALUES (?, ?, ?, ?)",
             (titulo, data_hora, tipo, descricao)
@@ -63,7 +63,6 @@ def consultar_agenda(dias: int = 7) -> str:
     conn = get_connection()
     cursor = conn.cursor()
 
-    # Pega a data atual e a data limite
     hoje = datetime.now()
     limite = hoje + timedelta(days=dias)
 
@@ -81,15 +80,13 @@ def consultar_agenda(dias: int = 7) -> str:
         return f"Nenhum evento programado para os próximos {dias} dias."
 
     linhas_formatadas = []
-    # Indexação baseada em 0 para acessar a tupla do SQLite
+
     for i in range(len(rows)):
         evento = rows[i]
         linhas_formatadas.append(f"[{evento[2]}] {evento[3].upper()}: {evento[1]} (ID {evento[0]})")
 
     return "\n".join(linhas_formatadas)
 
-
-# Adicione isso ao final do arquivo src/tools/agenda_tool.py
 
 @log_tool_call
 def remover_evento_agenda(evento_id: int) -> str:
@@ -125,7 +122,6 @@ def editar_evento_agenda(
     if not any([novo_titulo, nova_data_hora, novo_tipo, nova_descricao]):
         return "Erro: Nenhuma alteração fornecida. Informe ao menos um campo para atualizar."
 
-    # Validação estrita de data caso o LLM queira alterar o horário
     if nova_data_hora:
         try:
             datetime.strptime(nova_data_hora, "%Y-%m-%d %H:%M")

@@ -29,13 +29,13 @@ def iniciar_quiz() -> str:
     texto = chunk_selecionado["texto"]
     fonte = chunk_selecionado.get("fonte", "Desconhecida")
 
-    # Retorna uma instrução interna (invisível para o usuário) que guiará o LLM
+    # Retorna uma instrução interna que guiará a LLM
     instrucao_llm = (
         f"Material base selecionado (Fonte: {fonte}):\n"
         f"'{texto}'\n\n"
         "INSTRUÇÃO DE SISTEMA: Assuma a persona de um tutor acadêmico. Formule UMA "
         "pergunta desafiadora baseada EXCLUSIVAMENTE no texto acima para testar o usuário. "
-        "NÃO dê a resposta. Apenas faça a pergunta e aguarde o usuário responder no próximo turno. "
+        "NÃO dê a resposta. Apenas forneça o contexto da pergunta (qual a fonte, e o assunto), pergunte e aguarde o usuário responder no próximo turno. "
         "Após ele responder, use este mesmo material base para avaliar se a resposta dele está "
         "Correta, Parcialmente Correta ou Incorreta, e explique o porquê."
     )

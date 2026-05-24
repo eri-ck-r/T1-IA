@@ -6,24 +6,25 @@ import re
 from openai import OpenAI
 from dotenv import load_dotenv
 from datetime import datetime
+from pathlib import Path
 
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+
+BASE_DIR = Path(__file__).resolve().parent
+src_dir = str(BASE_DIR / "..")
+sys.path.append(src_dir)
+
+from tools.tasks_tool import adicionar_tarefa, listar_tarefas, remover_tarefa, editar_tarefa
 from tools.rag_tool import buscar_material_rag
-from tools.tasks_tool import adicionar_tarefa, listar_tarefas, remover_tarefa, editar_tarefa # Atualizado
-from tools.learning_tool import iniciar_quiz
-from tools.rag_tool import buscar_material_rag
-from tools.tasks_tool import adicionar_tarefa, listar_tarefas
 from tools.learning_tool import iniciar_quiz
 from tools.agenda_tool import adicionar_evento_agenda, consultar_agenda
 
 
 load_dotenv()
-LIA_BASE_URL = os.getenv("LIA_BASE_URL")
-JARVIS_API_KEY = os.getenv("JARVIS_API_KEY")
+LIA_URL = os.getenv("LIA_URL")
+GEMMA_API_KEY = os.getenv("GEMMA_API_KEY")
 
-client = OpenAI(base_url=LIA_BASE_URL, api_key=JARVIS_API_KEY)
+client = OpenAI(base_url=LIA_URL, api_key=GEMMA_API_KEY)
 
-#TODO: adicionar adicionar_evento_agenda e consultar_agenda
 available_functions = {
     "buscar_material_rag": buscar_material_rag,
     "listar_tarefas": listar_tarefas,
@@ -38,9 +39,9 @@ available_functions = {
 def run_agent():
     dia_hoje = datetime.today().strftime('%Y-%m-%d')
     dia_da_semana = datetime.today().strftime('%A')
-    print("Iniciando JARVIS... (Modo Prompt-Based)")
+    print("Iniciando JARVIS...")
 
-    # We embed the tool definitions directly into the system prompt
+    # Colocamos as definições das ferramentas diretamente no prompt do sistema
     system_instruction = """Você é o JARVIS, um assistente acadêmico. 
     Você tem acesso às seguintes ferramentas:
     0: {"tool_call": "buscar_material_rag", "args": {"query": "pergunta"}}
@@ -77,12 +78,10 @@ def run_agent():
                 )
 
                 response_text = response.choices[0].message.content.strip()
-
-                # Procura por um bloco JSON na resposta
-                json_match = re.search(r'\{.*"tool_call".*\}', response_text, re.DOTALL)
+                json_match = re.search(r'\{.*"tool_call".*}', response_text, re.DOTALL)
 
                 if json_match:
-                    # 1. Parse the JSON
+                    # 1. Parsear o JSON
                     try:
                         tool_data = json.loads(json_match.group(0))
                         func_name = tool_data.get("tool_call")
@@ -90,7 +89,7 @@ def run_agent():
 
                         print(f"\n[JARVIS ativando ferramenta: {func_name}...]")
 
-                        # 2. Execute the matched Python function
+                        # 2. Executar a função correspondente
                         func_to_call = available_functions.get(func_name)
                         if func_to_call:
                             tool_output = func_to_call(**args)
@@ -99,16 +98,17 @@ def run_agent():
                     except json.JSONDecodeError:
                         tool_output = "Erro: Formato JSON inválido."
 
-                    # 3. Add the interaction to history and prompt again
-                    # We tell it: if you need another tool, do it now.
+                    # 3. Adicionar a interação ao histórico e solicitar novamente
+                    # Informamos que, se precisar de outra ferramenta, faça agora.
                     messages.append({"role": "assistant", "content": response_text})
                     messages.append({
                         "role": "user",
-                        "content": f"Resultado da ferramenta: {tool_output}\nSe precisar usar mais uma ferramenta, envie apenas o novo JSON. Se já terminou todas as ações, dê a resposta final em português."
+                        "content": f"Resultado da ferramenta: {tool_output}\n"
+                                   f"Se precisar usar mais uma ferramenta, envie apenas o novo JSON. Se já terminou todas as ações, dê a resposta final em português."
                     })
 
                 else:
-                    # Se não houver JSON, é a resposta final em texto natural
+                    # Se não houver JSON, é a resposta final
                     print(f"\nJARVIS: {response_text}")
                     messages.append({"role": "assistant", "content": response_text})
                     break  # Sai do loop interno e aguarda o próximo input do usuário

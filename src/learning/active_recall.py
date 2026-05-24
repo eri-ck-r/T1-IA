@@ -3,14 +3,20 @@ import json
 import os
 import random
 from openai import OpenAI
+from dotenv import load_dotenv
 
-# Set up paths for Windows environment compatibility
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 DB_PATH = os.path.join(BASE_DIR, "database", "chunks.json")
 
-# Initialize the LLM client
-client = OpenAI(base_url='https://llm.liaufms.org/v1/gemma-3-12b-it', api_key='Cxt2ftLF7d3mHS2JdiFqB-eSDAQeZvFATPXPs02lV9A')
+from utils.interceptor import log_tool_call
 
+load_dotenv()
+LIA_URL = os.getenv("LIA_URL")
+GEMMA_API_KEY = os.getenv("GEMMA_API_KEY")
+
+client = OpenAI(base_url=LIA_URL, api_key=GEMMA_API_KEY)
+
+@log_tool_call
 def iniciar_quiz_active_recall():
     print("\n[Iniciando Módulo de Active Recall...]")
 

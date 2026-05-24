@@ -15,6 +15,7 @@ from pydantic import BaseModel
 from typing import List
 from openai import OpenAI
 from dotenv import load_dotenv
+from datetime import datetime
 
 # ---------------------------------------------------------------------------
 # Path setup — makes src/ importable from the project root
@@ -23,17 +24,18 @@ BASE_DIR = Path(__file__).resolve().parent
 sys.path.append(str(BASE_DIR / "src"))
 
 from tools.rag_tool import buscar_material_rag
-from tools.tasks_tool import adicionar_tarefa, listar_tarefas
+from tools.tasks_tool import adicionar_tarefa, listar_tarefas, remover_tarefa, editar_tarefa
 from tools.learning_tool import iniciar_quiz
+from tools.agenda_tool import adicionar_evento_agenda, consultar_agenda
 
 # ---------------------------------------------------------------------------
 # LLM client
 # ---------------------------------------------------------------------------
 load_dotenv()
-LIA_BASE_URL = os.getenv("LIA_BASE_URL")
-JARVIS_API_KEY = os.getenv("JARVIS_API_KEY")
+LIA_URL = os.getenv("LIA_URL")
+GEMMA_API_KEY = os.getenv("GEMMA_API_KEY")
 
-client = OpenAI(base_url=LIA_BASE_URL, api_key=JARVIS_API_KEY)
+client = OpenAI(base_url=LIA_URL, api_key=GEMMA_API_KEY)
 
 # ---------------------------------------------------------------------------
 # Tool registry
@@ -43,18 +45,32 @@ available_functions = {
     "listar_tarefas": listar_tarefas,
     "adicionar_tarefa": adicionar_tarefa,
     "iniciar_quiz": iniciar_quiz,
+    "remover_tarefa": remover_tarefa,
+    "editar_tarefa": editar_tarefa,
+    "adicionar_evento_agenda": adicionar_evento_agenda,
+    "consultar_agenda": consultar_agenda
 }
 
-SYSTEM_PROMPT = """Você é o JARVIS, um assistente acadêmico inteligente.
-Você tem acesso às seguintes ferramentas:
-0: {"tool_call": "buscar_material_rag", "args": {"query": "pergunta"}}
-1: {"tool_call": "listar_tarefas", "args": {}}
-2: {"tool_call": "adicionar_tarefa", "args": {"descricao": "texto da tarefa"}}
-3: {"tool_call": "iniciar_quiz", "args": {}}
+SYSTEM_PROMPT = """Você é o JARVIS, um assistente acadêmico. 
+    Você tem acesso às seguintes ferramentas:
+    0: {"tool_call": "buscar_material_rag", "args": {"query": "pergunta"}}
+    1: {"tool_call": "listar_tarefas", "args": {}}
+    2: {"tool_call": "adicionar_tarefa", "args": {"descricao": "texto da tarefa"}}
+    3: {"tool_call": "iniciar_quiz", "args": {}}
+    4: {"tool_call": "remover_tarefa", "args": {"task_id": numero_do_id}}
+    5: {"tool_call": "editar_tarefa", "args": {"task_id": numero_do_id, "nova_descricao": "novo texto opcional", "novo_status": "concluida ou pendente opcional"}}
+    6: {"tool_call": "adicionar_evento_agenda", "args": {"titulo": "nome", "data_hora": "YYYY-MM-DD HH:MM", "tipo": "aula ou prova", "descricao": "texto"}}
+    7: {"tool_call": "consultar_agenda", "args": {"dias": numero_de_dias}}
+    
+    Se o usuário pedir para ser testado, revisar a matéria ou fazer uma pergunta de estudo, use a ferramenta iniciar_quiz.
+    Se o usuário pedir para adicionar uma nova tarefa, use a ferramenta adicionar_tarefa.
+    Se o usuário pedir para editar a descrição ou status de uma tarefa, use a ferramenta editar_tarefa.
+    Se o usuário pedir para remover uma tarefa, use a ferramenta remover_tarefa.
+    Se você precisar usar uma ferramenta para responder ao usuário, você DEVE responder APENAS com o formato JSON da ferramenta escolhida e nenhum outro texto. Se não precisar de ferramentas, responda normalmente em português."""
 
-Se o usuário pedir para ser testado, revisar matéria ou fazer uma pergunta de estudo, use iniciar_quiz.
-Se precisar usar uma ferramenta, responda APENAS com o JSON correspondente e nenhum outro texto.
-Se não precisar de ferramentas, responda normalmente em português."""
+today = datetime.today().strftime('%Y-%m-%d')
+weekday = datetime.today().strftime('%A')
+SYSTEM_PROMPT += f" Além disso, o dia de hoje é {today}, {weekday}"
 
 # ---------------------------------------------------------------------------
 # FastAPI app

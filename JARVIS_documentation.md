@@ -339,7 +339,7 @@ Módulo standalone de aprendizado interativo. Pode ser executado diretamente pel
     Fornece explicação construtiva
 ```
 
-**Configuração:** utiliza `LIA_BASE_URL` e `JARVIS_API_KEY` via variáveis de ambiente (`.env`).
+**Configuração:** utiliza `LIA_URL` e `GEMMA_API_KEY` via variáveis de ambiente (`.env`).
 
 ---
 

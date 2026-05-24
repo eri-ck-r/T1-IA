@@ -6,7 +6,6 @@ from pathlib import Path
 DB_PATH = Path(__file__).resolve().parents[2] / "database" / "jarvis.db"
 
 def get_connection():
-    # Helper to keep connections clean
     return sqlite3.connect(str(DB_PATH))
 
 @log_tool_call
@@ -19,11 +18,11 @@ def listar_tarefas() -> str:
     rows = cursor.fetchall()
     conn.close()
     
-    # 0-based array check to ensure we have data
+    # Verificação de array com base 0 para garantir que temos dados
     if len(rows) == 0:
         return "Nenhuma tarefa registrada no momento."
         
-    # Format the rows into a clean string for the LLM to read
+    # Formatar as linhas para mandar pra LLM
     linhas_formatadas = []
     for i in range(len(rows)):
         tarefa = rows[i]
@@ -47,8 +46,6 @@ def adicionar_tarefa(descricao: str) -> str:
     conn.close()
     
     return f"Tarefa adicionada com sucesso: '{descricao}'."
-
-# Adicione isso ao final do arquivo src/tools/tasks_tool.py
 
 @log_tool_call
 def remover_tarefa(task_id: int) -> str:
@@ -80,7 +77,6 @@ def editar_tarefa(task_id: int, nova_descricao: str = None, novo_status: str = N
     conn = get_connection()
     cursor = conn.cursor()
 
-    # Constrói a query SQL dinamicamente com base no que foi fornecido
     campos = []
     valores = []
 
