@@ -36,7 +36,8 @@ uvicorn api:app --reload
 ## Agora, é só abrir o arquivo `/chat/chatJarvis.html` no seu navegador, e pronto!
 
 # IAs utilizadas:
-Gemini para auxiliar no desenvolvimento, documentação e design da arquitetura
+Gemini para auxiliar no desenvolvimento, documentação e design da arquitetura;
+
 Claude para fazer a parte da API para a interface web, e a interface web.
 
     
