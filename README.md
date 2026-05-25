@@ -28,6 +28,15 @@ python database/setup_db.py
 python src/rag/ingest.py
 ```
 
+### Criando o arquivo .env
+O projeto requer o URL do LIA e a chave da API para acessar o modelo Gemma 3 12B. Essas credenciais devem ser armazenadas em um arquivo `.env` na raiz do projeto.
+
+Na raiz do projeto (`T1-IA/`), crie um arquivo chamado `.env` com o seguinte conteúdo, fornecido no AVA:
+
+```env
+LIA_URL={url do lia}
+GEMMA_API_KEY={chave do gemma}
+```
 ### Inicie a API do Jarvis:
 ```bash
 uvicorn api:app --reload
