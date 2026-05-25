@@ -6,7 +6,6 @@ transformers
 accelerate
 nest_asyncio
 openai
-pytest
 python-dotenv
 numpy
 fastapi
