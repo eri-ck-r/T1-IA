@@ -5,5 +5,6 @@
 database/*.db
 database/*.pkl
 database/*.bin
+database/*.json
 
 logs/*.log
